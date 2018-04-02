@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Homework 4</title>
+</head>
+<body>
+    <form id="hw4Form" style="text-align:center;margin-top:100px;">
+        
+        <h1>Enter URL for Trucking List JSON File</h1>
+        <input type="text" style="width:200px;"name="jsonFileUrl" value="" id="hw4JsonFile">
+        <br/>
+        <br/>
+        <input type="submit" name="submit" value="Submit Query" onclick="getJSONData(this.form)">
+    </form> 
+    <script>
+        function getJSONData(test) {
+            
+            var fileUrl = test.jsonFileUrl.value;
+            if (document.getElementById("hw4JsonFile").value == "") {
+                alert("Please enter a JSON file")
+            } else if (!document.getElementById("hw4JsonFile").value.endsWith(".json")) {
+                alert("Please enter a valid JSON file")
+            } else {
+                if (document.getElementById("hw4JsonFile").value != "" && document.getElementById("hw4JsonFile").value.endsWith(".json")) {
+                    loadJSON(fileUrl);
+                }
+            }
+        }
+        var jsonDocument;
+        var trucking_html_text;
+        function loadJSON(url) {
+            
+            try {
+                if (window.XMLHttpRequest) {
+                    var xmlhttpreq = new XMLHttpRequest();
+                    xmlhttpreq.open("GET", url, false); 
+                    xmlhttpreq.send(null); 
+
+                   
+                    if (xmlhttpreq.responseText == "")
+                        alert("No Trucking Companies are found.");
+                    else {
+                        jsonDocument = JSON.parse(xmlhttpreq.responseText);
+
+                        if (jsonDocument && jsonDocument.Mainline && jsonDocument.Mainline.Table && jsonDocument.Mainline.Table.Row &&
+                            jsonDocument.Mainline.Table.Row.length > 0 ) {
+
+                             generateHW4HTML(jsonDocument);
+
+                            hWin = window.open("", "Assignment4", "height=800,width=900");
+                            hWin.document.write(trucking_html_text);
+                        } else {
+                            alert("No Trucking Companies are found.");
+                        }
+                    }
+                } else {
+                    alert("Does not support xmlhttprequest.")
+                }
+              } catch (e) {
+                        alert("File not found."+'\n'+"More details: "+ e.message);
+              }
+
+            }
+        function generateHW4HTML(jsonObj) {
+            debugger;
+            trucking_html_text = "<html><head><title>Top Trucking Companies</title></head><body>";
+            trucking_html_text += "<table border='2'>";
+            var truckingListTable = jsonObj.Mainline.Table;
+            trucking_html_text += "<tbody>";
+            trucking_html_text += "<tr>";
+            
+            if (truckingListTable.Header && truckingListTable.Header.Data) {
+                var headerKeys = truckingListTable.Header.Data;
+
+                for (i = 0; i < headerKeys.length; i++) {
+                    header = headerKeys[i];
+                    trucking_html_text += "<th>" + header + "</th>";
+                }
+            }
+            
+            trucking_html_text += "</tr>";
+            var x = '200px';
+            var y = '150px';
+            var truckingListRows = truckingListTable.Row;
+            if (truckingListRows.length > 0) {
+                for (i = 0; i < truckingListRows.length; i++) {
+                    var row = truckingListRows[i];
+                    trucking_html_text += "<tr>";
+                    var truckingList_keys = Object.keys(row);
+                    for (j = 0; j < truckingList_keys.length; j++) {
+                        prop = truckingList_keys[j];
+                       
+                        if (j == 5) {
+                            trucking_html_text += "<td><img src='" + row[prop] + "' width='" + x + "' height='" + y + "'></td>";
+                        } else if (j == 2) {
+                            var hubsList = row.Hubs.Hub;
+                            
+                            var hubsData;
+                            trucking_html_text += "<td>"
+                            if (hubsList && hubsList.length > 0) {
+                                trucking_html_text += "<ul>"
+                                for (k = 0; k < hubsList.length; k++) {
+                                    if (k == 0) {
+                                        trucking_html_text += "<li style='font-weight: bold'>" + hubsList[k] + "</li>";
+                                    } else {
+                                        trucking_html_text += "<li>" + hubsList[k] + "</li>";
+                                    }
+                                }
+                                trucking_html_text += "</ul>";
+                            }
+                            trucking_html_text += "</td>";
+
+                        } else if (j == 4) {
+                            trucking_html_text += "<td>" + "<a href=" + row[prop] + ">" + row[prop] + "</a>" + "</td>";
+                        }
+                        else {
+                            trucking_html_text += "<td>" + row[prop] + "</td>";
+                        }
+                    }
+                    trucking_html_text += "</tr>";
+                }
+
+                trucking_html_text += "</tbody>";
+                trucking_html_text += "</table>";
+                trucking_html_text += "</body></html>";
+            } else {
+                alert("No Trucking Companies are listed.");
+            }
+        }
+
+    </script>
+
+</body>
+</html>
